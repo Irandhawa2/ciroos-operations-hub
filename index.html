@@ -1,0 +1,1564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operations Hub — DevOps Flow</title>
+<style>
+  :root {
+    --bg: #15181a;
+    --bg-raised: #1c2023;
+    --surface: #22262a;
+    --surface-2: #2a2e32;
+    --border: #383c40;
+    --border-soft: #2c3034;
+    --border-strong: #454a4f;
+    --text: #f5f3f1;
+    --text-muted: #a3a8ac;
+    --text-dim: #6b6f76;
+    --accent: #f5773e;
+    --accent-soft: rgba(245, 119, 62, 0.16);
+    --accent-line: rgba(245, 119, 62, 0.4);
+    --critical: #e5504f;
+    --critical-soft: rgba(220, 51, 51, 0.16);
+    --warning: #f5b13f;
+    --warning-text: #f5b13f;
+    --warning-soft: rgba(245, 166, 35, 0.16);
+    --healthy: #2fca7c;
+    --healthy-soft: rgba(13, 175, 94, 0.16);
+    --info: #5b9bd8;
+    --queued: #8a8175;
+    --queued-soft: rgba(138, 129, 117, 0.16);
+    --proc-error: #c26bd9;
+    --proc-error-soft: rgba(194, 107, 217, 0.14);
+    --font-ui: -apple-system, "Neue Haas Grotesk Text", "Söhne", "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-display: "Söhne", "Neue Haas Grotesk Display", -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --font-mono: ui-monospace, "SF Mono", "JetBrains Mono", "Cascadia Code", Menlo, monospace;
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f3f1; --bg-raised: #ffffff; --surface: #ffffff; --surface-2: #f1f1f4;
+    --border: #e9e9e9; --border-soft: #e1e1e5; --border-strong: #c9c6be; --text: #121619; --text-muted: #6b6f76; --text-dim: #8a8e93;
+    --accent: #da5013; --accent-soft: rgba(218, 80, 19, 0.09); --accent-line: rgba(218, 80, 19, 0.3);
+    --critical: #dc3333; --critical-soft: rgba(220, 51, 51, 0.09);
+    --warning: #96650e; --warning-text: #96650e; --warning-soft: rgba(245, 166, 35, 0.14);
+    --healthy: #0b8a4c; --healthy-soft: rgba(13, 175, 94, 0.1); --info: #3873ad;
+    --queued: #8a7f6c; --queued-soft: rgba(138, 127, 108, 0.12);
+    --proc-error: #9c3fb0; --proc-error-soft: rgba(156, 63, 176, 0.1);
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f5f3f1; --bg-raised: #ffffff; --surface: #ffffff; --surface-2: #f1f1f4;
+      --border: #e9e9e9; --border-soft: #e1e1e5; --border-strong: #c9c6be; --text: #121619; --text-muted: #6b6f76; --text-dim: #8a8e93;
+      --accent: #da5013; --accent-soft: rgba(218, 80, 19, 0.09); --accent-line: rgba(218, 80, 19, 0.3);
+      --critical: #dc3333; --critical-soft: rgba(220, 51, 51, 0.09);
+      --warning: #96650e; --warning-text: #96650e; --warning-soft: rgba(245, 166, 35, 0.14);
+      --healthy: #0b8a4c; --healthy-soft: rgba(13, 175, 94, 0.1); --info: #3873ad;
+      --queued: #8a7f6c; --queued-soft: rgba(138, 127, 108, 0.12);
+      --proc-error: #9c3fb0; --proc-error-soft: rgba(156, 63, 176, 0.1);
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg); color: var(--text); font-family: var(--font-ui);
+    font-size: 14px; line-height: 1.45; -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); }
+  .tabular { font-variant-numeric: tabular-nums; }
+  a { color: inherit; }
+  button { font-family: var(--font-ui); }
+
+  /* ---------- App shell top bar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    padding: 12px 28px; background: var(--bg-raised); border-bottom: 1px solid var(--border);
+  }
+  .topbar .mark {
+    width: 28px; height: 28px; border-radius: 8px; background: var(--accent); color: #1a0e08;
+    display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 14px;
+    flex-shrink: 0;
+  }
+  .topbar .prod { font-family: var(--font-display); font-weight: 700; font-size: 15.5px; letter-spacing: -0.01em; }
+  .persona-pill {
+    font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    background: var(--accent-soft); color: var(--accent); padding: 4px 10px; border-radius: 20px;
+  }
+  .topbar .spacer { flex: 1; }
+  .topbar input {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text-muted);
+    font-family: var(--font-ui); font-size: 12.5px; padding: 7px 12px; border-radius: 7px;
+  }
+  .topbar input { width: 220px; }
+  .theme-toggle {
+    border: 1px solid var(--border); background: var(--surface-2); color: var(--text-muted);
+    font-size: 12px; font-weight: 600; padding: 7px 12px; border-radius: 6px; cursor: pointer;
+  }
+  .search-bar-wrap { margin-bottom: 16px; }
+  .search-bar {
+    width: 100%; background: var(--bg-raised); border: 1px solid var(--border); color: var(--text);
+    font-family: var(--font-ui); font-size: 13.5px; padding: 12px 16px; border-radius: 10px;
+  }
+  .search-bar::placeholder { color: var(--text-dim); }
+  .search-bar:focus { outline: none; border-color: var(--accent-line); }
+
+  /* ---------- Screen transitions ---------- */
+  .screen { display: none; }
+  .screen.active { display: block; animation: slideInRight .28s cubic-bezier(.22,.8,.24,1) both; }
+  @keyframes slideInRight { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+  .screen.leaving { display: block; animation: slideOutLeft .16s ease both; }
+  @keyframes slideOutLeft { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(-18px); } }
+  @media (prefers-reduced-motion: reduce) { .screen, .screen.leaving { animation: none; } }
+
+  /* =========================================================================
+     SCREEN 1 — Overview: card grid with depth cues, click a card to drill in
+     ========================================================================= */
+  .ov-page-layout { display: flex; gap: 24px; align-items: flex-start; max-width: 1580px; margin: 0 auto; padding: 0 32px; flex-wrap: wrap; }
+  .ov-shell { flex: 1; min-width: 480px; padding: 22px 0 48px; order: 2; }
+
+  .cluster-side-panel {
+    flex-shrink: 0; width: 220px; position: sticky; top: 90px; order: 1;
+    background: transparent; border: none; padding: 0 4px; margin-top: 30px;
+  }
+  .csp-head {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700;
+    color: var(--text-dim); padding: 0 10px; margin-bottom: 12px;
+  }
+  .csp-divider { border-top: 1px dashed var(--border-soft); margin: 12px 10px 14px; }
+  .csp-search {
+    width: calc(100% - 4px); background: transparent; border: none; border-bottom: 1px solid var(--border);
+    color: var(--text); font-family: var(--font-ui); font-size: 12.5px; padding: 6px 10px 10px; border-radius: 0;
+  }
+  .csp-search:focus { outline: none; border-bottom-color: var(--accent); }
+  .csp-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 11px 10px; border-radius: 8px; cursor: pointer; font-size: 13.5px;
+  }
+  .csp-row .csp-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border-strong); flex-shrink: 0; }
+  .csp-row .csp-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .csp-row:hover { background: var(--surface-2); }
+  .csp-row.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+  .csp-row.active .csp-dot { background: var(--accent); }
+  .csp-row .cnt { color: var(--text-dim); font-family: var(--font-mono); font-size: 10.5px; flex-shrink: 0; opacity: 0.7; }
+  .csp-empty, .csp-more { font-size: 11.5px; color: var(--text-dim); padding: 8px 10px; }
+
+  .scope-banner {
+    display: none; align-items: center; gap: 8px; font-size: 12.5px; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: 8px;
+    padding: 8px 14px; margin-bottom: 16px;
+  }
+  .scope-banner.show { display: flex; }
+  .scope-banner button {
+    margin-left: auto; background: transparent; border: none; color: var(--accent); font-weight: 700;
+    font-size: 12px; cursor: pointer; text-decoration: underline;
+  }
+
+  .ov-kpis {
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 10px; overflow: hidden; margin-bottom: 22px;
+  }
+  .kpi { background: var(--bg-raised); padding: 14px 18px; cursor: pointer; transition: background-color .15s ease; }
+  .kpi[data-sev]:hover { background: var(--surface-2); }
+  .kpi .kn { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-dim); font-weight: 600; }
+  .kpi .kv { font-family: var(--font-display); font-size: 26px; font-weight: 700; margin-top: 6px; display: inline-block; transition: transform .15s cubic-bezier(.2,.8,.2,1); }
+  .kpi[data-sev]:hover .kv { transform: scale(1.06); }
+  .kpi[data-sev]:active .kv { transform: scale(0.94); }
+  .kpi.crit .kv { color: var(--critical); }
+  .kpi.warn .kv { color: var(--warning); }
+  .kpi.ok .kv { color: var(--healthy); }
+  .kpi.dep .kv { color: var(--text-muted); }
+
+  .ov-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .ov-toolbar .chip {
+    font-size: 12px; font-weight: 600; padding: 6px 13px; border-radius: 20px; border: 1px solid var(--border);
+    color: var(--text-muted); background: var(--surface); cursor: pointer;
+  }
+  .ov-toolbar .chip.active { background: var(--accent); color: #1a0e08; border-color: var(--accent); }
+  .ov-toolbar .count-note { font-size: 12px; color: var(--text-dim); margin-left: auto; }
+
+  .ov-section-head { display: flex; align-items: baseline; justify-content: space-between; margin: 22px 0 12px; }
+  .ov-section-head h2 { font-family: var(--font-display); font-size: 14px; font-weight: 700; margin: 0; }
+  .ov-section-head .meta { font-size: 11.5px; color: var(--text-dim); }
+
+  .attn-table-wrap { background: var(--bg-raised); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+  .attn-table { width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13px; }
+  .attn-table .col-app { word-break: break-word; }
+  .attn-table thead th {
+    text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;
+    color: var(--text-dim); padding: 10px 14px; border-bottom: 1px solid var(--border); cursor: pointer; user-select: none;
+    background: var(--surface-2); white-space: nowrap; transition: color .15s ease;
+  }
+  .attn-table thead th:hover { color: var(--text); }
+  .attn-table thead th .arrow {
+    display: inline-block; font-size: 9px; margin-left: 4px; opacity: 0.5;
+    transition: transform .25s cubic-bezier(.2,.8,.2,1), opacity .2s ease, color .2s ease;
+  }
+  .attn-table thead th.sorted .arrow { opacity: 1; color: var(--accent); }
+  .attn-table thead th.sorted.dir-asc .arrow { transform: rotate(180deg); }
+  .attn-table tbody tr.app-row {
+    cursor: pointer;
+    transition: background-color .12s ease, transform .35s cubic-bezier(.22,.9,.24,1);
+  }
+  .attn-table tbody tr.app-row td.col-app { position: relative; }
+  .attn-table tbody tr.app-row td.col-app::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: var(--accent); transform: scaleY(0); transition: transform .18s cubic-bezier(.2,.8,.2,1);
+    transform-origin: center;
+  }
+  .attn-table tbody tr.app-row:hover { background: var(--surface-2); }
+  .attn-table tbody tr.app-row:hover td.col-app::before { transform: scaleY(1); }
+  .attn-table tbody tr.app-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .attn-table tbody tr.app-row.row-clicked { background: var(--accent-soft); transition: background-color .12s ease; }
+  .attn-table td { padding: 9px 14px; border-bottom: 1px solid var(--border-soft); vertical-align: middle; }
+  .attn-table tbody tr.app-row:last-child td { border-bottom: none; }
+  .attn-table .col-app { font-weight: 600; }
+  .attn-table .col-envs { color: var(--text-dim); font-size: 11.5px; }
+  .attn-table .col-symptom { color: var(--text-muted); font-size: 12px; }
+  .attn-table .col-num { font-family: var(--font-mono); text-align: center; color: var(--text-muted); }
+  @keyframes rowFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .attn-table tbody tr.app-row.row-enter { animation: rowFadeIn .32s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes groupFadeIn {
+    from { opacity: 0; } to { opacity: 1; }
+  }
+  .attn-table tbody tr.attn-group-row { animation: groupFadeIn .4s ease both; }
+  .attn-table .sev-pill {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .attn-table .sev-pill .d { width: 7px; height: 7px; border-radius: 50%; }
+  .attn-table .sev-pill.sev-critical { color: var(--critical); }
+  .attn-table .sev-pill.sev-critical .d { background: var(--critical); }
+  .attn-table .sev-pill.sev-warning { color: var(--warning-text); }
+  .attn-table .sev-pill.sev-warning .d { background: var(--warning); }
+  .attn-table .unowned-tag { color: var(--warning-text); font-size: 10.5px; margin-left: 6px; }
+  .attn-group-row td {
+    background: var(--surface-2); font-size: 11px; font-weight: 700; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.04em; padding: 8px 14px; border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .attn-group-row .grp-chevron {
+    display: inline-block; margin-right: 7px; font-size: 9px; transition: transform .2s cubic-bezier(.2,.8,.2,1); color: var(--text-dim);
+  }
+  .attn-group-row .grp-chevron.collapsed { transform: rotate(-90deg); }
+  .attn-group-row td .count { font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+
+  .app-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(252px, 1fr)); gap: 18px;
+  }
+
+  .app-card {
+    position: relative;
+    background: var(--bg-raised); border: 1px solid var(--border-soft); border-radius: 13px;
+    padding: 15px 16px 14px; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,.25);
+    transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  .app-card::before {
+    content: ""; position: absolute; top: 0; left: 14px; right: 14px; height: 3px; border-radius: 0 0 3px 3px;
+  }
+  .app-card.sev-critical::before { background: var(--critical); }
+  .app-card.sev-warning::before { background: var(--warning); }
+  .app-card.sev-healthy::before { background: var(--healthy); }
+  .app-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 16px 28px -12px rgba(0,0,0,.5), 0 0 0 1px var(--accent-line);
+  }
+  .app-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .app-card .ac-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-top: 4px; }
+  .app-card .name { font-weight: 600; font-size: 13.5px; line-height: 1.3; word-break: break-word; }
+  .app-card .path { font-size: 11px; color: var(--text-dim); margin-top: 5px; }
+  .app-card .ac-foot { display: flex; align-items: center; gap: 6px; margin-top: 12px; flex-wrap: wrap; }
+  .status-word {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 3px 8px; border-radius: 20px; white-space: nowrap; flex-shrink: 0;
+  }
+  .status-word.sev-critical { background: var(--critical-soft); color: var(--critical); }
+  .status-word.sev-warning { background: var(--warning-soft); color: var(--warning); }
+  .status-word.sev-healthy { background: var(--healthy-soft); color: var(--healthy); }
+  .mini-flag {
+    font-size: 10.5px; font-weight: 600; padding: 3px 8px; border-radius: 6px; white-space: nowrap;
+  }
+  .mini-flag.inv { color: var(--accent); background: var(--accent-soft); }
+  .mini-flag.unowned { color: var(--warning); background: var(--warning-soft); }
+  .mini-flag.count { color: var(--text-dim); background: var(--surface-2); font-family: var(--font-mono); margin-left: auto; }
+
+  details.healthy-group { margin-top: 8px; }
+  details.healthy-group summary {
+    list-style: none; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    padding: 11px 16px; background: var(--surface); border: 1px solid var(--border-soft); border-radius: 9px;
+    font-size: 12.5px; color: var(--text-muted); font-weight: 600;
+  }
+  details.healthy-group summary::-webkit-details-marker { display: none; }
+  details.healthy-group summary .chev { transition: transform .15s; color: var(--text-dim); }
+  details.healthy-group[open] summary .chev { transform: rotate(90deg); }
+  details.healthy-group .app-grid { margin-top: 14px; }
+  .empty-list-note {
+    padding: 30px 16px; text-align: center; color: var(--text-dim); font-size: 12.5px;
+    border: 1px dashed var(--border); border-radius: 9px;
+  }
+
+  /* =========================================================================
+     SCREEN 2 — App Health: rolled-up status, open alerts, investigations
+     ========================================================================= */
+  .c-shell { min-height: calc(100vh - 53px); padding: 22px 32px 48px; max-width: 1240px; margin: 0 auto; }
+
+  .c-crumb { font-size: 12px; color: var(--text-dim); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .back-btn {
+    display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--surface);
+    color: var(--text-muted); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 7px; cursor: pointer;
+  }
+  .back-btn:hover { border-color: var(--accent-line); color: var(--text); }
+
+  .c-header {
+    display: flex; align-items: center; gap: 22px; padding-bottom: 20px; border-bottom: 1px solid var(--border);
+    margin-bottom: 22px; flex-wrap: wrap;
+  }
+  .status-badge { flex-shrink: 0; min-width: 108px; padding: 12px 18px; border-radius: 12px; text-align: center; }
+  .status-badge.sev-critical { background: var(--critical-soft); border: 1px solid var(--critical); }
+  .status-badge.sev-warning { background: var(--warning-soft); border: 1px solid var(--warning); }
+  .status-badge.sev-healthy { background: var(--healthy-soft); border: 1px solid var(--healthy); }
+  .status-badge .word { font-family: var(--font-display); font-weight: 700; font-size: 17px; letter-spacing: -0.01em; }
+  .status-badge.sev-critical .word { color: var(--critical); }
+  .status-badge.sev-warning .word { color: var(--warning); }
+  .status-badge.sev-healthy .word { color: var(--healthy); }
+  .status-badge .why { font-size: 10.5px; color: var(--text-dim); margin-top: 3px; }
+
+  .c-title-block h1 { font-family: var(--font-display); font-size: 24px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.01em; }
+  .c-title-block .sub { font-size: 12.5px; color: var(--text-muted); display: flex; gap: 14px; flex-wrap: wrap; }
+  .c-title-block .sub b { color: var(--text); font-weight: 600; }
+  .c-title-block .sub .mono { font-family: var(--font-mono); }
+  .c-header .spacer { flex: 1; }
+  .c-header-actions { display: flex; gap: 10px; }
+  .c-header-actions button { font-size: 12.5px; font-weight: 600; padding: 9px 16px; border-radius: 8px; cursor: pointer; }
+  .c-header-actions .primary { background: var(--accent); color: #1a0e08; border: none; }
+
+  .c-body { display: flex; gap: 22px; align-items: flex-start; }
+  .c-main { flex: 2.1; min-width: 0; }
+  .c-rail-r { flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 16px; }
+
+  .c-section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; flex-wrap: wrap; gap: 8px; }
+  .c-section-head h2 { font-family: var(--font-display); font-size: 15px; font-weight: 700; margin: 0; }
+  .c-section-head .meta { font-size: 11.5px; color: var(--text-dim); }
+  .view-all-link { font-size: 12px; font-weight: 600; color: var(--accent); text-decoration: none; white-space: nowrap; }
+  .view-all-link:hover { text-decoration: underline; }
+  .c-section-sub { font-size: 11.5px; color: var(--text-dim); margin-bottom: 12px; }
+
+  /* ---- Investigations ---- */
+  .inv-search { margin-bottom: 10px; }
+  .inv-search input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted);
+    font-family: var(--font-ui); font-size: 12.5px; padding: 9px 12px; border-radius: 8px;
+  }
+  details.inv-filters-toggle { margin-bottom: 14px; }
+  details.inv-filters-toggle summary {
+    list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11.5px; color: var(--text-muted); font-weight: 600;
+    padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface);
+    transition: border-color .15s ease, color .15s ease, background-color .15s ease;
+  }
+  details.inv-filters-toggle summary:hover { border-color: var(--border-strong); color: var(--text); }
+  details.inv-filters-toggle[open] summary { border-color: var(--accent-line); color: var(--accent); background: var(--accent-soft); }
+  details.inv-filters-toggle summary::-webkit-details-marker { display: none; }
+  details.inv-filters-toggle summary .chev { transition: transform .15s; color: var(--text-dim); font-size: 10px; }
+  details.inv-filters-toggle[open] summary .chev { transform: rotate(90deg); }
+  details.inv-filters-toggle summary .active-note { color: var(--accent); font-weight: 600; }
+  details.inv-filters-toggle .inv-filters-line { margin-top: 12px; }
+  .inv-filters-line {
+    display: flex; align-items: center; gap: 18px; flex-wrap: wrap; margin-bottom: 16px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--border-soft);
+  }
+  .filter-group { display: flex; align-items: center; gap: 8px; }
+  .filter-group .fg-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); font-weight: 700; }
+  .filter-group .chips { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  .inv-filters-line .chip {
+    font-size: 11px; font-weight: 600; padding: 5px 11px; border-radius: 20px; border: 1px solid var(--border);
+    color: var(--text-muted); background: var(--surface); cursor: pointer;
+  }
+  .inv-filters-line .chip.active { background: var(--accent); color: #1a0e08; border-color: var(--accent); }
+
+  .investigation {
+    position: relative;
+    background: var(--bg-raised); border: 1px solid var(--border); border-left: 3px solid var(--text-dim);
+    border-radius: 10px; padding: 16px 18px; margin-bottom: 14px;
+  }
+  .investigation.new-flash { animation: flash-in .9s ease; }
+  @keyframes flash-in { from { background: var(--accent-soft); } to { background: var(--bg-raised); } }
+  .inv-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .inv-head .theory { font-size: 14px; font-weight: 600; line-height: 1.4; }
+  .inv-status {
+    flex-shrink: 0; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+  }
+  .inv-meta { font-size: 11.5px; color: var(--text-dim); margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .inv-meta b { color: var(--text-muted); }
+
+  .rca-summary {
+    margin-top: 10px; font-size: 12.5px; color: var(--text-muted); line-height: 1.55;
+    background: var(--surface); border-radius: 8px; padding: 10px 12px;
+  }
+  .rca-summary b { color: var(--text); }
+
+  .inv-alerts { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-soft); }
+  .inv-alerts .lbl {
+    font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-dim); font-weight: 700;
+    cursor: pointer; list-style: none; display: flex; align-items: center; gap: 6px;
+  }
+  .inv-alerts[open] .lbl { margin-bottom: 8px; }
+  .inv-alerts .lbl::-webkit-details-marker { display: none; }
+  .inv-alerts .lbl .chev { transition: transform .15s; font-size: 9px; }
+  .inv-alerts[open] .lbl .chev { transform: rotate(90deg); }
+  .alert-line { display: flex; align-items: center; gap: 9px; padding: 5px 0; font-size: 12.5px; }
+  .alert-line .d { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .alert-line .txt { flex: 1; color: var(--text-muted); }
+  .alert-line .env-tag {
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--text-dim); background: var(--surface-2);
+    padding: 1px 7px; border-radius: 5px;
+  }
+  .alert-line .ts { font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+  .inv-alerts .lbl .cnt-inline {
+    font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); background: var(--surface-2);
+    padding: 1px 6px; border-radius: 999px; text-transform: none; letter-spacing: 0; font-weight: 600;
+  }
+
+  .inv-footer { margin-top: 12px; display: flex; }
+  .inv-link { font-size: 12px; font-weight: 700; color: var(--accent); text-decoration: none; display: flex; align-items: center; gap: 5px; }
+
+  .empty-state {
+    background: var(--bg-raised); border: 1px dashed var(--border); border-radius: 10px;
+    padding: 26px 20px; text-align: center; color: var(--text-dim); font-size: 12.5px; margin-bottom: 14px;
+  }
+  .empty-state .big { font-size: 13.5px; color: var(--text-muted); font-weight: 600; margin-bottom: 4px; }
+
+  details.show-more { margin-top: 4px; }
+  details.show-more summary {
+    list-style: none; cursor: pointer; font-size: 12px; color: var(--text-dim); font-weight: 600;
+    padding: 9px 4px; display: flex; align-items: center; gap: 6px;
+  }
+  details.show-more summary::-webkit-details-marker { display: none; }
+  details.show-more summary .chev { transition: transform .15s; }
+  details.show-more[open] summary .chev { transform: rotate(90deg); }
+
+  .env-card, .drift-card, .clusters-card { background: var(--bg-raised); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .env-card h3, .drift-card h3, .clusters-card h3 { font-family: var(--font-display); font-size: 13px; margin: 0 0 4px; }
+  .env-card .h3sub, .drift-card .h3sub, .clusters-card .h3sub { font-size: 11px; color: var(--text-dim); margin-bottom: 12px; }
+  .clusters-search {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    font-family: var(--font-ui); font-size: 12px; padding: 7px 10px; border-radius: 7px; margin-bottom: 10px;
+  }
+  .clusters-search:focus { outline: none; border-color: var(--accent-line); }
+  .cluster-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 8px;
+    padding: 8px 0; border-bottom: 1px solid var(--border-soft);
+  }
+  .cluster-row:last-child { border-bottom: none; }
+  .cluster-row .cr-left { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .cluster-row .cr-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .cluster-row .cr-name { font-family: var(--font-mono); font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cluster-row .cr-meta { font-size: 10.5px; color: var(--text-dim); flex-shrink: 0; }
+  .clusters-empty { font-size: 12px; color: var(--text-dim); padding: 6px 0; }
+  .alert-card {
+    position: relative;
+    background: var(--bg-raised); border: 1px solid var(--border); border-left: 3px solid var(--text-dim);
+    border-radius: 10px; padding: 16px 18px; margin-bottom: 14px;
+  }
+  .alert-card .alert-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .alert-card .alert-text { font-size: 14px; font-weight: 600; line-height: 1.4; }
+  .alert-card .alert-status {
+    flex-shrink: 0; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    padding: 3px 9px; border-radius: 20px; white-space: nowrap;
+  }
+  .alert-card .alert-meta { font-size: 11.5px; color: var(--text-dim); margin-top: 6px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .alert-card .alert-meta b { color: var(--text-muted); }
+  .alert-card .rca-summary { margin-top: 10px; }
+  .alerts-empty { font-size: 12.5px; color: var(--text-dim); padding: 8px 0; }
+  .env-row {
+    display: grid; grid-template-columns: 16px 1fr auto; align-items: center; gap: 10px;
+    padding: 9px 0; border-bottom: 1px solid var(--border-soft);
+  }
+  .env-row:last-child { border-bottom: none; }
+  .env-row .edot { width: 8px; height: 8px; border-radius: 50%; }
+  .env-row .ename { font-size: 12.5px; font-weight: 600; }
+  .env-row .epods { font-size: 11px; color: var(--text-dim); font-family: var(--font-mono); }
+  .env-row .ever { font-family: var(--font-mono); font-size: 11.5px; color: var(--text-muted); text-align: right; }
+  .env-row.expanded { background: var(--surface); margin: 2px -8px; padding: 12px 8px; border-radius: 8px; border-bottom: none; }
+  .env-row.expanded .ename { font-size: 13.5px; }
+  .env-row.dimmed { opacity: 0.35; }
+
+  .drift-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .drift-table th {
+    text-align: left; font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim);
+    font-weight: 700; padding-bottom: 8px; border-bottom: 1px solid var(--border-soft);
+  }
+  .drift-table td { padding: 8px 0; border-bottom: 1px solid var(--border-soft); }
+  .drift-table tr:last-child td { border-bottom: none; }
+  .drift-table tr.dimmed { opacity: 0.35; }
+  .drift-table .ver { font-family: var(--font-mono); }
+  .drift-table .ver.drifted { color: var(--warning); font-weight: 700; }
+  .drift-table .pipe { display: inline-flex; align-items: center; gap: 5px; }
+  .pipe-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .drift-note {
+    margin-top: 12px; display: flex; gap: 8px; font-size: 11.5px; color: var(--warning);
+    background: var(--warning-soft); padding: 9px 11px; border-radius: 7px;
+  }
+  .drift-note.clean { color: var(--healthy); background: var(--healthy-soft); }
+
+  @media (max-width: 980px) {
+    .c-body { flex-direction: column; }
+    .ov-kpis { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+
+</head>
+<body>
+<div class="topbar">
+  <div class="mark">C</div>
+  <div class="prod">Operations Hub</div>
+  <span class="persona-pill">DevOps</span>
+  <div class="spacer"></div>
+  <button class="theme-toggle" id="themeToggle">Toggle theme</button>
+</div>
+
+<!-- ============ SCREEN 1 — OVERVIEW ============ -->
+<div class="screen active" id="screen-overview">
+  <div class="ov-page-layout">
+    <div class="cluster-side-panel" id="clusterSidePanel">
+      <div class="csp-head">Clusters</div>
+      <input class="csp-search" id="cspSearch" placeholder="Search clusters…" autocomplete="off" />
+      <div class="csp-divider"></div>
+      <div id="cspList"></div>
+    </div>
+
+    <div class="ov-shell">
+      <div class="scope-banner" id="scopeBanner">
+      <span>⊙</span><span id="scopeBannerText"></span>
+      <button id="clearScope">Clear</button>
+    </div>
+
+    <div class="search-bar-wrap">
+      <input class="search-bar" id="searchBox" placeholder="Search applications…" />
+    </div>
+
+    <div class="ov-kpis" id="kpiRow"></div>
+
+    <div class="ov-toolbar" id="filterToolbar">
+      <div class="filter-group">
+        <span class="fg-label">Environment</span>
+        <div class="chips" id="envFilterRow">
+          <span class="chip active" data-env="all">All</span>
+          <span class="chip" data-env="Production">Production</span>
+          <span class="chip" data-env="Staging">Staging</span>
+          <span class="chip" data-env="Test">Test</span>
+          <span class="chip" data-env="Dev">Dev</span>
+          <span class="chip" data-env="Demo">Demo</span>
+        </div>
+      </div>
+      <span class="count-note" id="countNote"></span>
+    </div>
+
+    <div class="ov-section-head">
+      <h2>Needs attention</h2>
+      <span class="meta">Status reflects the highest non-deprioritized severity among active alerts — click a card to open it</span>
+    </div>
+    <div id="app-list-attention"></div>
+
+    <div id="app-list-healthy-wrap"></div>
+  </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN 2 — APP HEALTH ============ -->
+<div class="screen" id="screen-detail">
+  <div class="c-shell">
+    <div class="c-crumb">
+      <button class="back-btn" id="backBtn">← Back to overview</button>
+      <span>Operations Hub / DevOps / <b id="crumbName" style="color:var(--text-muted)"></b></span>
+    </div>
+
+    <div class="c-header">
+      <div class="status-badge" id="statusBadge">
+        <div class="word" id="statusWord"></div>
+        <div class="why" id="statusWhy"></div>
+      </div>
+      <div class="c-title-block">
+        <h1 id="appName"></h1>
+        <div class="sub" id="appSub"></div>
+      </div>
+      <div class="spacer"></div>
+      <div class="c-header-actions">
+        <button class="primary">Ask Ciroos about this app →</button>
+      </div>
+    </div>
+
+    <div class="c-body">
+      <div class="c-main">
+
+        <div class="c-section-head">
+          <h2>Alerts &amp; Investigations</h2>
+          <a class="view-all-link" href="#">View all ↗</a>
+        </div>
+        <div class="c-section-sub">Every active alert for this app — the ones that got escalated show their investigation attached, the rest are still unclaimed</div>
+
+        <div class="inv-search">
+          <input id="invSearchBox" placeholder="Search by alert text or investigation theory…" />
+        </div>
+        <details class="inv-filters-toggle" id="invFiltersToggle">
+          <summary><span class="chev">▸</span> Filters <span class="active-note" id="invFiltersActiveNote"></span></summary>
+          <div class="inv-filters-line">
+            <div class="filter-group">
+              <span class="fg-label">Status</span>
+              <div class="chips" id="invStatusFilter">
+                <span class="chip active" data-status="all">All</span>
+                <span class="chip" data-status="Open">Open</span>
+                <span class="chip" data-status="In Progress">In Progress</span>
+                <span class="chip" data-status="Queued">Queued</span>
+                <span class="chip" data-status="Unowned">Unowned</span>
+                <span class="chip" data-status="Completed">Completed</span>
+                <span class="chip" data-status="Error">Error</span>
+                <span class="chip" data-status="Deprioritized">Deprioritized</span>
+              </div>
+            </div>
+            <div class="filter-group">
+              <span class="fg-label">Severity</span>
+              <div class="chips" id="invSeverityFilter">
+                <span class="chip active" data-sev="all">All</span>
+                <span class="chip" data-sev="critical">Critical</span>
+                <span class="chip" data-sev="warning">Warning</span>
+              </div>
+            </div>
+            <div class="filter-group">
+              <span class="fg-label">Time</span>
+              <div class="chips" id="invTimeFilter">
+                <span class="chip" data-range="1">24h</span>
+                <span class="chip" data-range="30">30d</span>
+                <span class="chip" data-range="90">90d</span>
+                <span class="chip active" data-range="all">All time</span>
+              </div>
+            </div>
+          </div>
+        </details>
+        <div id="investigationsSlot"></div>
+        <div class="inv-footer" style="margin-top:6px"><a class="inv-link" href="#">Browse full history for this app →</a></div>
+      </div>
+
+      <div class="c-rail-r">
+        <div class="env-card">
+          <h3>Environments</h3>
+          <div class="h3sub">Rolled-up status breaks down here — prod weighted highest</div>
+          <div id="envSlot"></div>
+        </div>
+
+        <div class="clusters-card">
+          <h3>Clusters</h3>
+          <div class="h3sub">Every cluster this app is deployed to</div>
+          <input class="clusters-search" id="appClusterSearch" placeholder="Search clusters…" />
+          <div id="appClustersSlot"></div>
+        </div>
+
+        <div class="drift-card">
+          <h3>CI/CD · deploy status</h3>
+          <div class="h3sub">Version drift matters more here than raw pass/fail</div>
+          <table class="drift-table">
+            <tr><th>Env</th><th>Version</th><th>Deployed</th><th>Pipeline</th></tr>
+            <tbody id="driftSlot"></tbody>
+          </table>
+          <div id="driftNoteSlot"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---- severity helpers -----------------------------------------------
+  const SEV_RANK = { healthy: 0, warning: 1, critical: 2 };
+  const COL_LABEL = { app: 'App', sev: 'Status', symptom: 'Symptom', envs: 'Envs', inv: 'Investigations', alerts: 'Alerts' };
+  const DEFAULT_SORT_DIR = { app: 'asc', sev: 'desc', symptom: 'asc', envs: 'desc', inv: 'desc', alerts: 'asc' };
+  const SORT_DIR_LABEL = {
+    app: { asc: 'A → Z', desc: 'Z → A' },
+    sev: { asc: 'healthiest first', desc: 'worst first' },
+    symptom: { asc: 'A → Z', desc: 'Z → A' },
+    envs: { asc: 'fewest first', desc: 'most first' },
+    inv: { asc: 'fewest first', desc: 'most first' },
+    alerts: { asc: 'fewest first', desc: 'most first' }
+  };
+  const SEV_WORD = { critical: 'Critical', warning: 'Degraded', healthy: 'Healthy' };
+  const SEV_DOT = { critical: 'var(--critical)', warning: 'var(--warning)', healthy: 'var(--text-dim)' };
+  const ENV_LABEL = { prod: 'Production', staging: 'Staging', test: 'Test', dev: 'Dev', demo: 'Demo' };
+
+  const ONGOING_STATUSES = ['Open', 'In Progress', 'Queued'];
+  const TERMINAL_STATUSES = ['Completed', 'Error'];
+  const STATUS_META = {
+    'Open': { color: 'var(--critical)', soft: 'var(--critical-soft)' },
+    'In Progress': { color: 'var(--accent)', soft: 'var(--accent-soft)' },
+    'Queued': { color: 'var(--queued)', soft: 'var(--queued-soft)' },
+    'Unowned': { color: 'var(--text-muted)', soft: 'var(--surface-2)' },
+    'Completed': { color: 'var(--healthy)', soft: 'var(--healthy-soft)' },
+    'Error': { color: 'var(--proc-error)', soft: 'var(--proc-error-soft)' },
+    'Deprioritized': { color: 'var(--queued)', soft: 'var(--queued-soft)' }
+  };
+
+  function effectiveSeverity(alert) {
+    if (alert.disposition === 'deprioritized' && alert.severity === 'critical') return 'warning';
+    return alert.severity;
+  }
+  function activeAlertsOf(app) {
+    return [
+      ...app.unownedAlerts,
+      ...app.deprioritizedAlerts,
+      ...app.investigations.flatMap(i => ONGOING_STATUSES.includes(i.status) ? i.alerts : [])
+    ];
+  }
+  function alertRow(a, isDep) {
+    const sev = effectiveSeverity(a);
+    const statusStyle = isDep ? `background:var(--queued-soft);color:var(--queued)` : `background:var(--surface-2);color:var(--text-muted)`;
+    return `
+      <div class="alert-card" style="border-left-color:${SEV_DOT[sev]}">
+        <div class="alert-head">
+          <div class="alert-text">${a.text}</div>
+          <div class="alert-status" style="${statusStyle}">${isDep ? 'Deprioritized' : 'Unowned'}</div>
+        </div>
+        <div class="alert-meta"><span><b>${ENV_LABEL[a.env] || a.env}</b> · ${a.ts}</span></div>
+        ${isDep ? `<div class="rca-summary"><b>Deprioritized because.</b> ${a.rule}</div>` : ''}
+      </div>
+    `;
+  }
+  function scopeMatches(scope, envName) { return scope.length === 0 || scope.includes(envName); }
+  function scopedAlerts(app, scope) {
+    const all = activeAlertsOf(app);
+    if (scope.length === 0) return all;
+    return all.filter(a => scope.includes(ENV_LABEL[a.env]));
+  }
+  function appMatchesScope(app, scope) {
+    if (scope.length === 0) return true;
+    return app.envs.some(e => scope.includes(e.name));
+  }
+  function envCluster(e) { return `${e.name.toLowerCase()}-${e.region}`; }
+  function renderAppClusters(app) {
+    const q = appClusterSearch.trim().toLowerCase();
+    const rows = app.envs
+      .map(e => ({ cluster: envCluster(e), env: e }))
+      .filter(r => !q || r.cluster.includes(q));
+    const slot = document.getElementById('appClustersSlot');
+    if (!rows.length) {
+      slot.innerHTML = `<div class="clusters-empty">No clusters match “${appClusterSearch}”.</div>`;
+      return;
+    }
+    slot.innerHTML = rows.map(r => `
+      <div class="cluster-row">
+        <div class="cr-left">
+          <span class="cr-dot" style="background:${SEV_DOT[r.env.severity]}"></span>
+          <span class="cr-name">${r.cluster}</span>
+        </div>
+        <span class="cr-meta">${r.env.pods} pods</span>
+      </div>
+    `).join('');
+  }
+  document.getElementById('appClusterSearch').addEventListener('input', e => {
+    appClusterSearch = e.target.value;
+    renderAppClusters(APPS[currentAppId]);
+  });
+  function appMatchesCluster(app, clusters) {
+    if (clusters.length === 0) return true;
+    return app.envs.some(e => clusters.includes(envCluster(e)));
+  }
+  function appSeverity(app, scope) {
+    const alerts = scopedAlerts(app, scope);
+    let worst = 'healthy';
+    for (const a of alerts) { const s = effectiveSeverity(a); if (SEV_RANK[s] > SEV_RANK[worst]) worst = s; }
+    return worst;
+  }
+  function appAlertCount(app, scope) { return scopedAlerts(app, scope).length; }
+  function appUnownedCount(app, scope) {
+    const list = scope.length === 0 ? app.unownedAlerts : app.unownedAlerts.filter(a => scope.includes(ENV_LABEL[a.env]));
+    return list.length;
+  }
+  function appActiveInvCount(app, scope) {
+    return app.investigations.filter(i => ONGOING_STATUSES.includes(i.status) && (scope.length === 0 || i.alerts.some(a => scope.includes(ENV_LABEL[a.env])))).length;
+  }
+
+  let alertIdCounter = 0;
+  function withIds(alerts) { alerts.forEach(a => { if (!a.id) a.id = 'al' + (alertIdCounter++); }); return alerts; }
+  let invIdCounter = 0;
+  function withInvIds(invs) { invs.forEach(i => { if (!i.id) i.id = 'inv' + (invIdCounter++); }); return invs; }
+
+  // ---- RCA history generation (demonstrates 100s-1000s of investigations) --
+  const RCA_LIBRARY = [
+    {
+      theory: 'ClickHouse connection pool exhaustion under a batch backfill job',
+      rca: 'The nightly backfill job opened far more concurrent connections than the pool\'s configured max of 50, starving normal write traffic and pushing p99 wait times past 4 seconds. The job was throttled to a fixed concurrency of 10 and the pool size was raised to 120 as a buffer; a ticket was filed to move the backfill onto its own dedicated connection pool.'
+    },
+    {
+      theory: 'Disk pressure from unrotated merge-tree parts',
+      rca: 'A change to the retention policy silently stopped part merging on one shard, causing small parts to accumulate and disk usage to climb steadily over two weeks until nodes hit the eviction threshold. Merging was re-enabled manually and a monitor was added on part count per shard to catch this earlier next time.'
+    },
+    {
+      theory: 'Readiness probe flapping after a dependency image bump',
+      rca: 'A minor version bump to the base image changed the default startup grace period, causing the readiness probe to fail intermittently during rolling restarts even though the process was healthy. The probe\'s initialDelaySeconds was increased to match the new startup profile and the rollout was re-run cleanly.'
+    },
+    {
+      theory: 'Replication lag spike from a single noisy-neighbor pod',
+      rca: 'A colocated batch job on the same node saturated network bandwidth, delaying replication acknowledgements and tripping the lag alert. The batch job was moved to a dedicated node pool and a network bandwidth reservation was added for replication traffic.'
+    },
+    {
+      theory: 'Memory growth traced to an unbounded query result cache',
+      rca: 'A recently added query cache had no size limit, and a small number of high-cardinality queries caused it to grow unbounded until pods were OOM-killed. A max cache size with LRU eviction was added and the offending queries were rewritten to reduce cardinality.'
+    },
+    {
+      theory: 'Cert expiry caused intermittent mTLS handshake failures',
+      rca: 'An internal service certificate rotated on schedule, but one client had a stale CA bundle cached, causing roughly 8% of requests to fail mTLS handshakes for about twenty minutes until the cache expired. The client\'s CA bundle refresh interval was shortened and an expiry-window alert was added.'
+    },
+    {
+      theory: 'Cache stampede after a scheduled cache flush',
+      rca: 'A scheduled cache flush coincided with a traffic peak, sending a burst of uncached requests straight to the database and briefly exhausting its connection pool. The flush was rescheduled to a low-traffic window and request coalescing was added in front of the cache to prevent future stampedes.'
+    },
+    {
+      theory: 'Autoscaler thrashing from a misconfigured scale-down cooldown',
+      rca: 'The horizontal pod autoscaler had no scale-down cooldown configured, so it repeatedly scaled down and back up in response to normal traffic variance, causing brief periods of under-capacity. A five-minute cooldown was added and the scaling metric was smoothed with a longer averaging window.'
+    }
+  ];
+  function generateResolvedHistory(count) {
+    const days = [0, 2, 4, 7, 9, 12, 15, 19, 24, 29, 35, 41, 48, 56, 65, 75, 86, 98, 112, 128, 145, 164, 185, 210, 240, 275, 315, 360];
+    const out = [];
+    for (let i = 0; i < count; i++) {
+      const t = RCA_LIBRARY[i % RCA_LIBRARY.length];
+      const isError = i % 9 === 8;
+      out.push({
+        theory: t.theory, status: isError ? 'Error' : 'Completed', opened: null,
+        daysAgo: days[i % days.length] + (i >= days.length ? 5 : 0),
+        severity: i % 3 === 0 ? 'critical' : 'warning',
+        meta: isError ? 'Correlation failed' : `Completed · duration ${5 + (i % 40)}m`,
+        rca: isError ? null : t.rca,
+        errorReason: isError ? 'Ciroos couldn\'t correlate enough signal to form a theory before the alert cleared on its own — closed without a root cause.' : null,
+        alerts: [
+          { severity: 'healthy', text: 'Primary triggering signal', env: i % 2 === 0 ? 'prod' : 'test', ts: `${days[i % days.length] + 1}d ago` }
+        ]
+      });
+    }
+    return out;
+  }
+
+  // ---- curated apps (full detail) --------------------------------------
+  const CURATED = {
+    'clickhouse-operator': {
+      name: 'clickhouse-operator',
+      envs: [
+        { name: 'Production', region: 'us-east-1', pods: '64/65', version: 'v2.4.1', severity: 'critical' },
+        { name: 'Staging', region: 'us-east-1', pods: '12/12', version: 'v2.4.3', severity: 'warning' },
+        { name: 'Dev', region: 'us-west-1', pods: '4/4', version: 'v2.4.3', severity: 'healthy' }
+      ],
+      drift: [
+        { env: 'Production', version: 'v2.4.1', drifted: true, deployed: '9d ago', pipeline: 'passed' },
+        { env: 'Staging', version: 'v2.4.3', drifted: false, deployed: '1h ago', pipeline: 'passed' },
+        { env: 'Dev', version: 'v2.4.3', drifted: false, deployed: '3h ago', pipeline: 'failed' }
+      ],
+      driftNote: 'Prod is 2 versions behind staging/dev — the fix for the readiness-probe issue hasn\'t shipped to prod yet.',
+      unownedAlerts: withIds([
+        { severity: 'critical', text: 'Disk pressure on clickhouse-1', env: 'prod', ts: '3m ago' }
+      ]),
+      deprioritizedAlerts: withIds([
+        { severity: 'warning', text: 'Slow query log rotation overdue', env: 'dev', ts: '2h ago', rule: 'Auto-rule: dev-cluster + non-prod-affecting alerts deprioritized' },
+        { severity: 'critical', text: 'Node CPU throttling', env: 'dev', ts: '5h ago', rule: 'Auto-rule: dev-cluster + non-prod-affecting alerts deprioritized' }
+      ]),
+      investigations: withInvIds([
+        {
+          theory: 'ClickHouse connection pool exhaustion under sustained write load',
+          status: 'In Progress', opened: '18m ago', daysAgo: 0, severity: 'critical',
+          meta: 'Auto-started by Ciroos · spans 2 environments',
+          alerts: withIds([
+            { severity: 'critical', text: 'Pool wait time > 4s, p99', env: 'prod', ts: '2m ago' },
+            { severity: 'critical', text: 'Connection refused: db-test', env: 'test', ts: '6m ago' },
+            { severity: 'warning', text: 'Write queue depth rising', env: 'prod', ts: '11m ago' },
+            { severity: 'warning', text: 'Pod restart: clickhouse-0', env: 'prod', ts: '18m ago' }
+          ])
+        },
+        ...generateResolvedHistory(24)
+      ])
+    },
+    'redis-standalone-app': {
+      name: 'redis-standalone-app',
+      envs: [
+        { name: 'Production', region: 'us-east-1', pods: '8/8', version: 'v6.2.11', severity: 'critical' },
+        { name: 'Test', region: 'us-east-1', pods: '2/2', version: 'v6.2.11', severity: 'healthy' }
+      ],
+      drift: [
+        { env: 'Production', version: 'v6.2.11', drifted: false, deployed: '2d ago', pipeline: 'passed' },
+        { env: 'Test', version: 'v6.2.11', drifted: false, deployed: '2d ago', pipeline: 'passed' }
+      ],
+      driftNote: null,
+      unownedAlerts: withIds([
+        { severity: 'critical', text: 'OOM kill: redis-standalone-0', env: 'prod', ts: '4m ago' },
+        { severity: 'critical', text: 'Replication lag > 30s', env: 'prod', ts: '9m ago' }
+      ]),
+      deprioritizedAlerts: withIds([
+        { severity: 'warning', text: 'Key eviction rate above baseline', env: 'test', ts: '40m ago', rule: 'Auto-rule: test-cluster alerts below sev-1 deprioritized' }
+      ]),
+      investigations: withInvIds([
+        { theory: 'Memory growth traced to an unbounded query result cache', status: 'Completed', opened: null, daysAgo: 6,
+          severity: 'critical', meta: 'Completed · duration 22m', rca: RCA_LIBRARY[4].rca,
+          alerts: withIds([{ severity: 'healthy', text: 'Memory usage alert', env: 'prod', ts: '6d ago' }]) }
+      ])
+    },
+    'splunk-logging': {
+      name: 'splunk-logging',
+      envs: [{ name: 'Demo', region: 'us-east-1', pods: '0/0', version: 'v9.1.2', severity: 'warning' }],
+      drift: [{ env: 'Demo', version: 'v9.1.2', drifted: false, deployed: '5d ago', pipeline: 'passed' }],
+      driftNote: null,
+      unownedAlerts: [],
+      deprioritizedAlerts: [],
+      investigations: withInvIds([
+        {
+          theory: 'Forwarder backlog growing faster than indexer throughput',
+          status: 'Open', opened: '40m ago', daysAgo: 0, severity: 'warning',
+          meta: 'Auto-started by Ciroos · spans 1 environment',
+          alerts: withIds([
+            { severity: 'warning', text: 'Indexing queue depth > threshold', env: 'demo', ts: '12m ago' },
+            { severity: 'warning', text: 'License usage at 92% of daily quota', env: 'demo', ts: '40m ago' }
+          ])
+        }
+      ])
+    },
+    'online-boutique': {
+      name: 'online-boutique',
+      envs: [
+        { name: 'Production', region: 'us-east-1', pods: '37/37', version: 'v1.9.0', severity: 'healthy' },
+        { name: 'Staging', region: 'us-east-1', pods: '37/37', version: 'v1.9.0', severity: 'healthy' }
+      ],
+      drift: [
+        { env: 'Production', version: 'v1.9.0', drifted: false, deployed: '6h ago', pipeline: 'passed' },
+        { env: 'Staging', version: 'v1.9.0', drifted: false, deployed: '6h ago', pipeline: 'passed' }
+      ],
+      driftNote: null,
+      unownedAlerts: [],
+      deprioritizedAlerts: [],
+      investigations: []
+    }
+  };
+
+  // ---- synthetic apps, generated to demonstrate scale at 100s ----------
+  function mulberry32(seed) {
+    return function () {
+      seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+      let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  const rand = mulberry32(88);
+  const NOUNS = ['gateway', 'ingest', 'worker', 'scheduler', 'proxy', 'cache', 'billing', 'auth', 'notifier', 'indexer',
+    'exporter', 'collector', 'router', 'sync', 'pipeline', 'consumer', 'producer', 'api', 'batch', 'reconciler'];
+  const DOMAINS = ['payments', 'inventory', 'search', 'user', 'order', 'shipping', 'catalog', 'session', 'metrics', 'audit',
+    'email', 'sms', 'recommendation', 'pricing', 'fraud', 'analytics', 'onboarding', 'reporting', 'webhook', 'cdn'];
+  const ENV_NAMES = ['Production', 'Staging', 'Test', 'Dev', 'Demo'];
+
+  function genApp(i) {
+    const domain = DOMAINS[i % DOMAINS.length];
+    const noun = NOUNS[Math.floor(rand() * NOUNS.length)];
+    const name = `${domain}-${noun}-${i}`;
+    const roll = rand();
+    const sevPick = roll < 0.10 ? 'critical' : roll < 0.28 ? 'warning' : 'healthy';
+    const envCount = 1 + Math.floor(rand() * 3);
+    const envs = [];
+    const usedEnvs = new Set();
+    for (let e = 0; e < envCount; e++) {
+      let envName = ENV_NAMES[Math.floor(rand() * ENV_NAMES.length)];
+      while (usedEnvs.has(envName) && usedEnvs.size < ENV_NAMES.length) envName = ENV_NAMES[Math.floor(rand() * ENV_NAMES.length)];
+      usedEnvs.add(envName);
+      const isProd = envName === 'Production';
+      envs.push({
+        name: envName, region: rand() > 0.5 ? 'us-east-1' : 'us-west-1',
+        pods: `${Math.floor(rand() * 20) + 1}/${Math.floor(rand() * 20) + 1}`,
+        version: `v1.${Math.floor(rand() * 8)}.${Math.floor(rand() * 9)}`,
+        severity: isProd ? sevPick : (rand() < 0.15 ? sevPick : 'healthy')
+      });
+    }
+    if (!envs.some(e => e.name === 'Production') && rand() < 0.6) envs[0].name = 'Production';
+
+    const unownedAlerts = [];
+    const deprioritizedAlerts = [];
+    const investigations = [];
+    if (sevPick !== 'healthy') {
+      const envForAlert = envs.find(e => e.severity === sevPick) || envs[0];
+      const envTag = Object.keys(ENV_LABEL).find(k => ENV_LABEL[k] === envForAlert.name) || 'prod';
+      if (rand() < 0.55) {
+        const statusRoll = rand();
+        const ongoingStatus = statusRoll < 0.4 ? 'Open' : statusRoll < 0.8 ? 'In Progress' : 'Queued';
+        investigations.push({
+          theory: `Elevated ${sevPick === 'critical' ? 'error rate' : 'latency'} on ${name}`,
+          status: ongoingStatus, opened: `${Math.floor(rand() * 50) + 1}m ago`, daysAgo: 0, severity: sevPick,
+          meta: `Auto-started by Ciroos · spans 1 environment`,
+          alerts: withIds([{ severity: sevPick, text: sevPick === 'critical' ? 'Error rate > 5%' : 'p95 latency above SLO', env: envTag, ts: `${Math.floor(rand() * 20) + 1}m ago` }])
+        });
+      } else {
+        unownedAlerts.push({ severity: sevPick, text: sevPick === 'critical' ? 'Pod crash-looping' : 'Memory usage trending up', env: envTag, ts: `${Math.floor(rand() * 30) + 1}m ago` });
+      }
+      if (rand() < 0.2) {
+        deprioritizedAlerts.push({
+          severity: 'warning', text: 'Non-prod resource quota warning', env: 'dev', ts: `${Math.floor(rand() * 4) + 1}h ago`,
+          rule: 'Auto-rule: dev/test-cluster low-severity alerts deprioritized'
+        });
+      }
+    }
+    if (rand() < 0.3) investigations.push(...generateResolvedHistory(1 + Math.floor(rand() * 3)));
+
+    withIds(unownedAlerts); withIds(deprioritizedAlerts); withInvIds(investigations);
+
+    return {
+      name, envs,
+      drift: envs.map(e => ({ env: e.name, version: e.version, drifted: false, deployed: `${Math.floor(rand() * 9) + 1}d ago`, pipeline: rand() < 0.9 ? 'passed' : 'failed' })),
+      driftNote: null, unownedAlerts, deprioritizedAlerts, investigations
+    };
+  }
+
+  const APPS = { ...CURATED };
+  for (let i = 0; i < 165; i++) {
+    const a = genApp(i);
+    if (!APPS[a.name]) APPS[a.name] = a;
+  }
+
+  // ---- overview state --------------------------------------------------
+  let scope = []; // array of selected environment names; empty = all environments
+  let sevFilter = 'all';
+  let clusterFilter = []; // array of selected cluster names; empty = all clusters
+  let search = '';
+
+  const CLUSTER_LIST = [...new Set(Object.values(APPS).flatMap(a => a.envs.map(envCluster)))].sort();
+  const CLUSTER_COUNTS = {};
+  CLUSTER_LIST.forEach(c => { CLUSTER_COUNTS[c] = Object.values(APPS).filter(a => appMatchesCluster(a, [c])).length; });
+
+  let cspSearchTerm = '';
+  const CSP_MATCH_LIMIT = 20; // side panel has more room than the dropdown, but still capped for scale
+  function renderClusterSidePanel() {
+    const panel = document.getElementById('cspList');
+    const q = cspSearchTerm.trim().toLowerCase();
+    const allMatches = q ? CLUSTER_LIST.filter(c => c.includes(q)) : CLUSTER_LIST;
+    const shown = allMatches.slice(0, CSP_MATCH_LIMIT);
+    if (!shown.length) {
+      panel.innerHTML = `<div class="csp-empty">No clusters match “${cspSearchTerm}”.</div>`;
+      return;
+    }
+    panel.innerHTML = shown.map(c => `
+      <div class="csp-row ${clusterFilter.includes(c) ? 'active' : ''}" data-cluster="${c}">
+        <span class="csp-dot"></span><span class="csp-name">${c}</span><span class="cnt">${CLUSTER_COUNTS[c]}</span>
+      </div>
+    `).join('') + (allMatches.length > shown.length ? `<div class="csp-more">${allMatches.length - shown.length} more — keep typing to narrow down</div>` : '');
+
+    panel.querySelectorAll('.csp-row').forEach(row => {
+      row.onclick = () => {
+        clusterFilter = clusterFilter.includes(row.dataset.cluster)
+          ? clusterFilter.filter(c => c !== row.dataset.cluster)
+          : [...clusterFilter, row.dataset.cluster];
+        renderOverview();
+      };
+    });
+  }
+  document.getElementById('cspSearch').addEventListener('input', e => {
+    cspSearchTerm = e.target.value;
+    renderClusterSidePanel();
+  });
+
+  function applyFilters(list) {
+    return list.filter(r => appMatchesScope(r.app, scope))
+      .filter(r => appMatchesCluster(r.app, clusterFilter))
+      .filter(r => sevFilter === 'all' || r.sev === sevFilter)
+      .filter(r => !search || r.app.name.toLowerCase().includes(search.toLowerCase()));
+  }
+
+  function cardHtml(r) {
+    return `
+      <div class="app-card sev-${r.sev}" tabindex="0" role="button" data-app="${r.app.name}">
+        <div class="ac-top">
+          <div class="name">${r.app.name}</div>
+          <div class="status-word sev-${r.sev}">${SEV_WORD[r.sev]}</div>
+        </div>
+        <div class="path">${r.app.envs.length} env${r.app.envs.length > 1 ? 's' : ''} · ${r.app.envs.map(e => e.name).join(', ')}</div>
+        <div class="ac-foot">
+          ${r.activeInv ? `<span class="mini-flag inv">${r.activeInv} inv.</span>` : ''}
+          ${r.unowned ? `<span class="mini-flag unowned">⚠ ${r.unowned} unowned</span>` : ''}
+          <span class="mini-flag count">${r.count} alerts</span>
+        </div>
+      </div>
+    `;
+  }
+
+  let tableSort = null; // {key, dir} or null for the default grouped view
+  const kpiPrevValues = {};
+  const rowPrevPositions = new Map(); // data-app -> {top} from before the last re-render, for FLIP
+  const collapsedGroups = new Set();
+
+  function animateKpiNumber(el, from, to, duration = 550) {
+    if (from === to) { el.textContent = to; return; }
+    const start = performance.now();
+    function tick(now) {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(from + (to - from) * eased);
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function captureRowPositions() {
+    rowPrevPositions.clear();
+    document.querySelectorAll('.app-row').forEach(row => {
+      rowPrevPositions.set(row.dataset.app, row.getBoundingClientRect().top);
+    });
+  }
+
+  function flipAnimateRows() {
+    document.querySelectorAll('.app-row').forEach((row, i) => {
+      const prevTop = rowPrevPositions.get(row.dataset.app);
+      if (prevTop === undefined) {
+        // genuinely new row (wasn't on screen before) — fade/slide in, staggered
+        row.classList.add('row-enter');
+        row.style.animationDelay = (i * 12) + 'ms';
+        return;
+      }
+      const newTop = row.getBoundingClientRect().top;
+      const delta = prevTop - newTop;
+      if (Math.abs(delta) < 1) return;
+      row.style.transition = 'none';
+      row.style.transform = `translateY(${delta}px)`;
+      // eslint-disable-next-line no-unused-expressions
+      row.offsetHeight; // force reflow so the next line animates from this starting point
+      requestAnimationFrame(() => {
+        row.style.transition = '';
+        row.style.transform = '';
+      });
+    });
+  }
+
+
+  function computeAttentionGroups(attention) {
+    const textCounts = {};
+    attention.forEach(r => {
+      const seen = new Set();
+      r.alerts.forEach(a => { if (!seen.has(a.text)) { seen.add(a.text); textCounts[a.text] = (textCounts[a.text] || 0) + 1; } });
+    });
+    const groups = {};
+    const standalone = [];
+    attention.forEach(r => {
+      if (!r.alerts.length) { r._symptom = null; standalone.push(r); return; }
+      const primary = [...r.alerts].sort((a, b) => (textCounts[b.text] || 0) - (textCounts[a.text] || 0))[0];
+      r._symptom = (textCounts[primary.text] || 0) > 1 ? primary.text : null;
+      if (r._symptom) { (groups[r._symptom] = groups[r._symptom] || []).push(r); } else { standalone.push(r); }
+    });
+    return { groups, standalone };
+  }
+
+  function attnRowHtml(r, groupKey) {
+    return `
+      <tr class="app-row" tabindex="0" data-app="${r.app.name}" data-group="${groupKey || ''}">
+        <td class="col-app">${r.app.name}</td>
+        <td>
+          <span class="sev-pill sev-${r.sev}"><span class="d"></span>${SEV_WORD[r.sev]}</span>
+          ${r.unowned ? `<span class="unowned-tag">⚠ ${r.unowned} unowned</span>` : ''}
+        </td>
+        <td class="col-symptom">${r._symptom || '—'}</td>
+        <td class="col-envs">${r.app.envs.length} · ${r.app.envs.map(e => e.name).join(', ')}</td>
+        <td class="col-num">${r.activeInv || 0}</td>
+        <td class="col-num">${r.count}</td>
+      </tr>
+    `;
+  }
+
+  function renderAttentionTable(attention) {
+    const wrap = document.getElementById('app-list-attention');
+    if (!attention.length) {
+      wrap.innerHTML = `<div class="empty-list-note">Nothing needs attention${scope.length ? ' in ' + scope.join(', ') : ''}${search ? ' matching “' + search + '”' : ''}.</div>`;
+      return;
+    }
+    const { groups, standalone } = computeAttentionGroups(attention);
+
+    let bodyHtml = '';
+    if (!tableSort) {
+      const groupEntries = Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
+      groupEntries.forEach(([symptom, rows]) => {
+        const sorted = [...rows].sort((a, b) => b.count - a.count);
+        const isCollapsed = collapsedGroups.has(symptom);
+        bodyHtml += `<tr class="attn-group-row" data-group-key="${symptom}"><td colspan="6"><span class="grp-chevron${isCollapsed ? ' collapsed' : ''}">▾</span>${symptom}<span class="count">${rows.length} apps</span></td></tr>`;
+        if (!isCollapsed) bodyHtml += sorted.map(r => attnRowHtml(r, symptom)).join('');
+      });
+      if (standalone.length) {
+        const isCollapsed = collapsedGroups.has('__standalone__');
+        bodyHtml += `<tr class="attn-group-row" data-group-key="__standalone__"><td colspan="6"><span class="grp-chevron${isCollapsed ? ' collapsed' : ''}">▾</span>Not grouped with others<span class="count">${standalone.length} apps</span></td></tr>`;
+        if (!isCollapsed) bodyHtml += standalone.map(r => attnRowHtml(r, '__standalone__')).join('');
+      }
+    } else {
+      const flat = [...Object.values(groups).flat(), ...standalone];
+      const dir = tableSort.dir === 'asc' ? 1 : -1;
+      flat.sort((a, b) => {
+        switch (tableSort.key) {
+          case 'app': return a.app.name.localeCompare(b.app.name) * dir;
+          case 'sev': return (SEV_RANK[a.sev] - SEV_RANK[b.sev]) * dir;
+          case 'symptom': return (a._symptom || '').localeCompare(b._symptom || '') * dir;
+          case 'envs': return (a.app.envs.length - b.app.envs.length) * dir;
+          case 'inv': return ((a.activeInv || 0) - (b.activeInv || 0)) * dir;
+          case 'alerts': return (a.count - b.count) * dir;
+          default: return 0;
+        }
+      });
+      bodyHtml = flat.map(attnRowHtml).join('');
+    }
+
+    wrap.innerHTML = `
+      ${tableSort ? `<div style="margin-bottom:10px;"><span style="color:var(--accent);cursor:pointer;font-size:12px;font-weight:600;" id="resetGroupLink">↺ Back to grouped view</span><span style="color:var(--text-dim);font-size:12px;margin-left:8px;">— sorted by ${COL_LABEL[tableSort.key]}, ${SORT_DIR_LABEL[tableSort.key][tableSort.dir]}</span></div>` : ''}
+      <div class="attn-table-wrap">
+        <table class="attn-table">
+          <colgroup>
+            <col style="width:20%"><col style="width:13%"><col style="width:24%">
+            <col style="width:24%"><col style="width:9.5%"><col style="width:9.5%">
+          </colgroup>
+          <thead><tr>
+            <th data-key="app">App <span class="arrow">▾</span></th>
+            <th data-key="sev">Status <span class="arrow">▾</span></th>
+            <th data-key="symptom">Symptom <span class="arrow">▾</span></th>
+            <th data-key="envs">Envs <span class="arrow">▾</span></th>
+            <th data-key="inv" style="text-align:center;">Inv. <span class="arrow">▾</span></th>
+            <th data-key="alerts" style="text-align:center;">Alerts <span class="arrow">▾</span></th>
+          </tr></thead>
+          <tbody>${bodyHtml}</tbody>
+        </table>
+      </div>
+    `;
+
+    wrap.querySelectorAll('thead th').forEach(th => {
+      const isSorted = !!(tableSort && tableSort.key === th.dataset.key);
+      th.classList.toggle('sorted', isSorted);
+      th.classList.toggle('dir-asc', isSorted && tableSort.dir === 'asc');
+      th.onclick = () => {
+        captureRowPositions();
+        if (tableSort && tableSort.key === th.dataset.key) {
+          tableSort = { key: th.dataset.key, dir: tableSort.dir === 'asc' ? 'desc' : 'asc' };
+        } else {
+          tableSort = { key: th.dataset.key, dir: DEFAULT_SORT_DIR[th.dataset.key] || 'asc' };
+        }
+        renderAttentionTable(attention);
+        flipAnimateRows();
+      };
+    });
+    const resetLink = document.getElementById('resetGroupLink');
+    if (resetLink) resetLink.onclick = () => {
+      captureRowPositions();
+      tableSort = null;
+      renderAttentionTable(attention);
+      flipAnimateRows();
+    };
+
+    wrap.querySelectorAll('.app-row').forEach(row => {
+      row.addEventListener('click', () => {
+        row.classList.add('row-clicked');
+        setTimeout(() => openApp(row.dataset.app), 110);
+      });
+      row.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openApp(row.dataset.app); } });
+    });
+
+    wrap.querySelectorAll('.attn-group-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const key = row.dataset.groupKey;
+        if (collapsedGroups.has(key)) collapsedGroups.delete(key); else collapsedGroups.add(key);
+        captureRowPositions();
+        renderAttentionTable(attention);
+        flipAnimateRows();
+      });
+    });
+  }
+
+  function renderOverview() {
+    renderClusterSidePanel();
+    const allRows = Object.values(APPS).map(app => ({
+      app, sev: appSeverity(app, scope), count: appAlertCount(app, scope),
+      activeInv: appActiveInvCount(app, scope), unowned: appUnownedCount(app, scope),
+      alerts: scopedAlerts(app, scope)
+    }));
+
+    const scopedTotal = allRows.filter(r => appMatchesScope(r.app, scope) && appMatchesCluster(r.app, clusterFilter));
+    const critRows = applyFilters(allRows.filter(r => r.sev === 'critical'));
+    const warnRows = applyFilters(allRows.filter(r => r.sev === 'warning'));
+    const healthyRows = applyFilters(allRows.filter(r => r.sev === 'healthy'));
+    const attention = [...critRows, ...warnRows].sort((a, b) => SEV_RANK[b.sev] - SEV_RANK[a.sev] || b.count - a.count);
+
+    const kpiTargets = {
+      crit: scopedTotal.filter(r => r.sev === 'critical').length,
+      warn: scopedTotal.filter(r => r.sev === 'warning').length,
+      ok: scopedTotal.filter(r => r.sev === 'healthy').length,
+      total: scopedTotal.length,
+      dep: scopedTotal.reduce((n, r) => n + r.app.deprioritizedAlerts.filter(a => scopeMatches(scope, ENV_LABEL[a.env])).length, 0)
+    };
+    document.getElementById('kpiRow').innerHTML = `
+      <div class="kpi crit" data-sev="critical"><div class="kn">Critical</div><div class="kv"><span class="kv-num" data-key="crit">0</span><span style="font-size:12px;color:var(--text-dim);font-weight:500"> apps</span></div></div>
+      <div class="kpi warn" data-sev="warning"><div class="kn">Degraded</div><div class="kv"><span class="kv-num" data-key="warn">0</span><span style="font-size:12px;color:var(--text-dim);font-weight:500"> apps</span></div></div>
+      <div class="kpi ok" data-sev="healthy"><div class="kn">Healthy</div><div class="kv"><span class="kv-num" data-key="ok">0</span><span style="font-size:12px;color:var(--text-dim);font-weight:500"> apps</span></div></div>
+      <div class="kpi tabular"><div class="kn">Total apps</div><div class="kv"><span class="kv-num" data-key="total">0</span></div></div>
+      <div class="kpi dep"><div class="kn">Deprioritized</div><div class="kv"><span class="kv-num" data-key="dep">0</span></div></div>
+    `;
+    document.querySelectorAll('#kpiRow .kv-num').forEach(el => {
+      const key = el.dataset.key;
+      const from = kpiPrevValues[key] !== undefined ? kpiPrevValues[key] : 0;
+      const to = kpiTargets[key];
+      animateKpiNumber(el, from, to);
+      kpiPrevValues[key] = to;
+    });
+    document.querySelectorAll('#kpiRow .kpi[data-sev]').forEach(k => k.addEventListener('click', () => setSevFilter(k.dataset.sev === sevFilter ? 'all' : k.dataset.sev)));
+
+    const anyFilterActive = sevFilter !== 'all' || clusterFilter.length > 0 || scope.length > 0 || !!search;
+    document.getElementById('countNote').innerHTML = `${attention.length} need attention · ${healthyRows.length} healthy`
+      + (anyFilterActive ? ` <span id="clearAllFilters" style="color:var(--accent);cursor:pointer;font-weight:600;margin-left:6px;">Clear filters</span>` : '');
+    const clearAllBtn = document.getElementById('clearAllFilters');
+    if (clearAllBtn) clearAllBtn.onclick = () => {
+      sevFilter = 'all'; clusterFilter = []; scope = []; search = '';
+      document.getElementById('searchBox').value = '';
+      renderOverview();
+    };
+
+    captureRowPositions();
+    renderAttentionTable(attention);
+    flipAnimateRows();
+
+    document.getElementById('app-list-healthy-wrap').innerHTML = (sevFilter === 'all' || sevFilter === 'healthy') ? `
+      <details class="healthy-group">
+        <summary><span class="chev">▸</span> ${healthyRows.length} healthy app${healthyRows.length !== 1 ? 's' : ''} — collapsed by default</summary>
+        <div class="app-grid">${healthyRows.map(cardHtml).join('')}</div>
+      </details>
+    ` : '';
+
+    document.querySelectorAll('.app-card').forEach(card => {
+      card.addEventListener('click', () => openApp(card.dataset.app));
+      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openApp(card.dataset.app); } });
+    });
+
+    document.querySelectorAll('#envFilterRow .chip').forEach(c =>
+      c.classList.toggle('active', c.dataset.env === 'all' ? scope.length === 0 : scope.includes(c.dataset.env))
+    );
+
+    const banner = document.getElementById('scopeBanner');
+    if (scope.length > 0) {
+      banner.classList.add('show');
+      const envLabel = scope.length === 1 ? scope[0] : scope.join(', ');
+      document.getElementById('scopeBannerText').textContent = `Scoped to ${envLabel} — everything below (status, counts, drill-ins) reflects ${scope.length > 1 ? 'these environments' : envLabel} only.`;
+    } else {
+      banner.classList.remove('show');
+    }
+  }
+
+  function setSevFilter(s) { sevFilter = s; renderOverview(); }
+
+  document.getElementById('envFilterRow').addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    if (chip.dataset.env === 'all') {
+      scope = [];
+    } else if (scope.includes(chip.dataset.env)) {
+      scope = scope.filter(s => s !== chip.dataset.env);
+    } else {
+      scope = [...scope, chip.dataset.env];
+    }
+    renderOverview();
+  });
+  document.getElementById('clearScope').addEventListener('click', () => {
+    scope = [];
+    renderOverview();
+  });
+  document.getElementById('searchBox').addEventListener('input', e => { search = e.target.value; renderOverview(); });
+
+  // ---- detail screen state ----------------------------------------------
+  let currentAppId = null;
+  let invStatusFilter = 'all';
+  let invSeverityFilter = 'all';
+  let invTimeRange = 'all'; // days, or 'all' — only applies to terminal (Completed/Error) items
+  let invSearch = '';
+  let appClusterSearch = '';
+
+  function openApp(id) {
+    const overview = document.getElementById('screen-overview');
+    overview.classList.add('leaving');
+    setTimeout(() => {
+      overview.classList.remove('leaving');
+      currentAppId = id;
+      invStatusFilter = 'all';
+      invSeverityFilter = 'all';
+      invTimeRange = 'all';
+      invSearch = '';
+      document.getElementById('invSearchBox').value = '';
+      document.getElementById('invFiltersToggle').open = false;
+      appClusterSearch = '';
+      document.getElementById('appClusterSearch').value = '';
+      renderDetail();
+      document.getElementById('screen-overview').classList.remove('active');
+      document.getElementById('screen-detail').classList.add('active');
+      window.scrollTo(0, 0);
+    }, 160);
+  }
+
+  function renderDetail(flashInvTheory) {
+    const app = APPS[currentAppId];
+    const sev = appSeverity(app, scope);
+    const alerts = scopedAlerts(app, scope);
+    const criticalCount = alerts.filter(a => effectiveSeverity(a) === 'critical').length;
+    const warningCount = alerts.filter(a => effectiveSeverity(a) === 'warning').length;
+
+    document.getElementById('crumbName').textContent = app.name;
+    document.getElementById('appName').textContent = app.name;
+
+    const badge = document.getElementById('statusBadge');
+    badge.className = 'status-badge sev-' + sev;
+    document.getElementById('statusWord').textContent = SEV_WORD[sev];
+    document.getElementById('statusWhy').textContent = sev === 'healthy'
+      ? 'No active alerts' + (scope.length ? ' in ' + scope.join(', ') : '')
+      : `From ${criticalCount ? criticalCount + ' critical' : ''}${criticalCount && warningCount ? ', ' : ''}${warningCount ? warningCount + ' warning' : ''} active alert${alerts.length > 1 ? 's' : ''}${scope.length ? ' in ' + scope.join(', ') : ''}`;
+
+    const envsInScope = scope.length === 0 ? app.envs : app.envs.filter(e => scope.includes(e.name));
+    const versions = [...new Set((envsInScope.length ? envsInScope : app.envs).map(e => e.version))];
+    document.getElementById('appSub').innerHTML = `
+      <span>Rolled-up status: <b style="color:${sev === 'critical' ? 'var(--critical)' : sev === 'warning' ? 'var(--warning)' : 'var(--healthy)'}">${SEV_WORD[sev]}</b></span>
+      <span>${app.envs.length} environment${app.envs.length > 1 ? 's' : ''}${scope.length ? ` (scoped to ${scope.join(', ')})` : ''}</span>
+      <span>${versions.length > 1 ? `Version drift: <b class="mono">${versions.join('</b> vs <b class="mono">')}</b>` : `Running <b class="mono">${versions[0] || '—'}</b>${scope.length === 0 ? ' everywhere' : ''}`}</span>
+    `;
+
+    renderInvestigations(app, flashInvTheory);
+
+    document.getElementById('envSlot').innerHTML = app.envs.map((e, idx) => `
+      <div class="env-row ${idx === 0 && (scope.length === 0 || scope.includes(e.name)) ? 'expanded' : ''} ${scope.length > 0 && !scope.includes(e.name) ? 'dimmed' : ''}">
+        <div class="edot" style="background:${SEV_DOT[e.severity]}"></div>
+        <div><div class="ename">${e.name}</div><div class="epods">${e.region} · ${e.pods} pods</div></div>
+        <div class="ever">${e.version}</div>
+      </div>
+    `).join('');
+
+    renderAppClusters(app);
+
+    document.getElementById('driftSlot').innerHTML = app.drift.map(d => `
+      <tr class="${scope.length > 0 && !scope.includes(d.env) ? 'dimmed' : ''}">
+        <td>${d.env}</td>
+        <td class="ver ${d.drifted ? 'drifted' : ''}">${d.version}</td>
+        <td>${d.deployed}</td>
+        <td><span class="pipe"><span class="pipe-dot" style="background:${d.pipeline === 'passed' ? 'var(--healthy)' : 'var(--critical)'}"></span>${d.pipeline === 'passed' ? 'Passed' : 'Failed'}</span></td>
+      </tr>
+    `).join('');
+    document.getElementById('driftNoteSlot').innerHTML = app.driftNote
+      ? `<div class="drift-note">⚠ ${app.driftNote}</div>`
+      : `<div class="drift-note clean">✓ All environments on the same version</div>`;
+  }
+
+  // ---- Investigations: search + status/severity/time filters ------------
+  const FEED_TIER = { 'Open': 0, 'In Progress': 0, 'Queued': 0, 'Unowned': 1, 'Completed': 2, 'Error': 2, 'Deprioritized': 3 };
+
+  function passesFeedFilters(item) {
+    if (invStatusFilter !== 'all' && item.status !== invStatusFilter) return false;
+    if (invSeverityFilter !== 'all' && item.severity !== invSeverityFilter) return false;
+    if (invSearch) {
+      const text = item.type === 'inv' ? item.data.theory : item.data.text;
+      if (!text.toLowerCase().includes(invSearch.toLowerCase())) return false;
+    }
+    if (item.type === 'inv' && TERMINAL_STATUSES.includes(item.status) && invTimeRange !== 'all' && item.data.daysAgo > invTimeRange) return false;
+    return true;
+  }
+
+  function renderInvestigations(app, flashTheory) {
+    const activeCount = (invStatusFilter !== 'all' ? 1 : 0) + (invSeverityFilter !== 'all' ? 1 : 0) + (invTimeRange !== 'all' ? 1 : 0);
+    document.getElementById('invFiltersActiveNote').textContent = activeCount ? `· ${activeCount} active` : '';
+
+    const unownedInScope = scope.length === 0 ? app.unownedAlerts : app.unownedAlerts.filter(a => scope.includes(ENV_LABEL[a.env]));
+    const deprioritizedInScope = scope.length === 0 ? app.deprioritizedAlerts : app.deprioritizedAlerts.filter(a => scope.includes(ENV_LABEL[a.env]));
+
+    const items = [
+      ...app.investigations.map(inv => ({ type: 'inv', status: inv.status, severity: inv.severity, data: inv })),
+      ...unownedInScope.map(a => ({ type: 'alert', status: 'Unowned', severity: effectiveSeverity(a), data: a, isDep: false })),
+      ...deprioritizedInScope.map(a => ({ type: 'alert', status: 'Deprioritized', severity: effectiveSeverity(a), data: a, isDep: true }))
+    ];
+
+    const matches = items.filter(passesFeedFilters).sort((a, b) => {
+      const ta = FEED_TIER[a.status] ?? 9, tb = FEED_TIER[b.status] ?? 9;
+      if (ta !== tb) return ta - tb;
+      if (a.type === 'inv' && b.type === 'inv') return a.data.daysAgo - b.data.daysAgo;
+      return 0;
+    });
+
+    const itemHtml = item => item.type === 'inv' ? investigationCard(item.data, flashTheory) : alertRow(item.data, item.isDep);
+
+    const VISIBLE = 6;
+    const visible = matches.slice(0, VISIBLE);
+    const overflow = matches.slice(VISIBLE);
+
+    let html = '';
+    if (matches.length === 0) {
+      const totalAll = app.investigations.length + unownedInScope.length + deprioritizedInScope.length;
+      html = totalAll > 0
+        ? `<div class="empty-state"><div class="big">Nothing matches these filters</div>This app has ${totalAll} item${totalAll > 1 ? 's' : ''} total — try widening Status, Severity, Time, or the search above.</div>`
+        : `<div class="empty-state"><div class="big">Nothing here${scope.length ? ' in ' + scope.join(', ') : ''}</div>No active alerts and nothing has needed investigating recently.</div>`;
+    } else {
+      html += visible.map(itemHtml).join('');
+      if (overflow.length) {
+        html += `<details class="show-more"><summary><span class="chev">▸</span> Show ${overflow.length} more matching these filters</summary>${overflow.map(itemHtml).join('')}</details>`;
+      }
+    }
+    document.getElementById('investigationsSlot').innerHTML = html;
+
+    document.querySelectorAll('#invStatusFilter .chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.status === invStatusFilter);
+      c.onclick = () => { invStatusFilter = c.dataset.status; renderInvestigations(app); };
+    });
+    document.querySelectorAll('#invSeverityFilter .chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.sev === invSeverityFilter);
+      c.onclick = () => { invSeverityFilter = c.dataset.sev; renderInvestigations(app); };
+    });
+    document.querySelectorAll('#invTimeFilter .chip').forEach(c => {
+      c.classList.toggle('active', c.dataset.range === String(invTimeRange));
+      c.onclick = () => { invTimeRange = c.dataset.range === 'all' ? 'all' : Number(c.dataset.range); renderInvestigations(app); };
+    });
+  }
+
+  document.getElementById('invSearchBox').addEventListener('input', e => {
+    invSearch = e.target.value;
+    renderInvestigations(APPS[currentAppId]);
+  });
+
+  function investigationCard(inv, flashTheory) {
+    const meta = STATUS_META[inv.status];
+    const all = inv.alerts;
+    return `
+      <div class="investigation ${inv.theory === flashTheory ? 'new-flash' : ''}" style="border-left-color:${meta.color}">
+        <div class="inv-head">
+          <div class="theory">${inv.theory}</div>
+          <div class="inv-status" style="background:${meta.soft};color:${meta.color}">${inv.status}</div>
+        </div>
+        <div class="inv-meta"><span>${inv.opened ? 'Opened <b>' + inv.opened + '</b> · ' : TERMINAL_STATUSES.includes(inv.status) ? (inv.daysAgo === 0 ? 'Today · ' : inv.daysAgo + 'd ago · ') : ''}${inv.meta}</span></div>
+        ${inv.status === 'Completed' && inv.rca ? `<div class="rca-summary"><b>RCA summary.</b> ${inv.rca}</div>` : ''}
+        ${inv.status === 'Error' && inv.errorReason ? `<div class="rca-summary" style="color:var(--proc-error)"><b>Why it errored.</b> ${inv.errorReason}</div>` : ''}
+        ${all.length ? `
+          <details class="inv-alerts">
+            <summary class="lbl"><span class="chev">▸</span> Correlated alert${all.length > 1 ? 's' : ''} <span class="cnt-inline">${all.length}</span></summary>
+            ${all.map(a => `
+              <div class="alert-line">
+                <span class="d" style="background:${TERMINAL_STATUSES.includes(inv.status) ? 'var(--text-dim)' : SEV_DOT[a.severity]}"></span>
+                <span class="txt">${a.text}</span>
+                <span class="env-tag">${a.env}</span>
+                <span class="ts">${a.ts}</span>
+              </div>
+            `).join('')}
+          </details>
+        ` : ''}
+        <div class="inv-footer"><a class="inv-link" href="#" style="${TERMINAL_STATUSES.includes(inv.status) ? 'color:var(--text-muted)' : ''}">Open full investigation →</a></div>
+      </div>
+    `;
+  }
+
+  document.getElementById('backBtn').addEventListener('click', () => {
+    document.getElementById('screen-detail').classList.remove('active');
+    document.getElementById('screen-overview').classList.add('active');
+  });
+
+  document.getElementById('themeToggle').addEventListener('click', () => {
+    const root = document.documentElement;
+    const current = root.getAttribute('data-theme');
+    root.setAttribute('data-theme', current === 'dark' ? 'light' : 'dark');
+  });
+
+  renderOverview();
+</script>
+</body>
+</html>
